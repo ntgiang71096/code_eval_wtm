@@ -4,10 +4,9 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedModel,
 )
-from core import run_eval, instruct_prompt
+from core import run_eval, replit_glaive_prompt
 import os
 import torch
-
 import argparse
 from submitit_utils import str2bool
 
@@ -20,11 +19,10 @@ TOKEN = ""
 def generate_batch_completion(
     model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prompt: str, batch_size: int, logit_processor_lst, use_watermark, **gen_kwargs
 ) -> list:
-    prompt_input = instruct_prompt(prompt)
-    input_batch = [prompt_input for _ in range(batch_size)]
-    inputs = tokenizer(input_batch, return_tensors="pt").to(model.device)
+    prompt_input = replit_glaive_prompt(prompt)
+    # input_batch = [prompt_input for _ in range(batch_size)]
+    inputs = tokenizer([prompt_input], return_tensors="pt").to(model.device)
     input_ids_cutoff = inputs.input_ids.size(dim=1)
-
 
     if use_watermark:
         generated_ids = model.generate(
@@ -34,26 +32,34 @@ def generate_batch_completion(
             top_p=0.95,
             eos_token_id=tokenizer.eos_token_id,
             pad_token_id=tokenizer.pad_token_id,
+            num_return_sequences=batch_size,
             logits_processor=logit_processor_lst,
             **gen_kwargs
         )
     else:
         generated_ids = model.generate(
-            **inputs,
-            use_cache=True,
-            max_new_tokens=512,
-            temperature=0.2,
-            top_p=0.95,
-            do_sample=True,
-            eos_token_id=tokenizer.eos_token_id,
-            pad_token_id=tokenizer.pad_token_id,
-        )
-
+        **inputs,
+        use_cache=True,
+        max_new_tokens=512,
+        temperature=0.2,
+        top_p=0.95,
+        do_sample=True,
+        eos_token_id=tokenizer.eos_token_id,
+        pad_token_id=tokenizer.pad_token_id,
+        num_return_sequences=batch_size
+    )
+    
     batch_completions = tokenizer.batch_decode(
         [ids[input_ids_cutoff:] for ids in generated_ids],
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False,
     )
+
+    # batch_completions = tokenizer.batch_decode(
+    #     [ids[input_ids_cutoff:] for ids in generated_ids],
+    #     skip_special_tokens=True,
+    #     clean_up_tokenization_spaces=False,
+    # )
 
     return batch_completions
 
@@ -61,8 +67,22 @@ def generate_batch_completion(
 if __name__ == "__main__":
     # adjust for n = 10 etc
     num_samples_per_task = 10
-    # out_path = "results/replit_instruct/eval.jsonl"
-    # os.makedirs("results/replit_instruct", exist_ok=True)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "sahil2801/replit-code-instruct-glaive",
+        trust_remote_code=True,
+        use_auth_token=TOKEN,
+    )
+
+    model = torch.compile(
+        AutoModelForCausalLM.from_pretrained(
+            "sahil2801/replit-code-instruct-glaive",
+            torch_dtype=torch.bfloat16,
+            trust_remote_code=True,
+            use_auth_token=TOKEN,
+            init_device="cuda:2",
+        ).eval()
+    )
 
 
     parser = argparse.ArgumentParser(description="Run watermarked huggingface LM generation pipeline")
@@ -173,21 +193,7 @@ if __name__ == "__main__":
     os.makedirs(result_path, exist_ok=True)
     out_path = result_path + "/eval.jsonl"
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        "teknium/Replit-v1-CodeInstruct-3B",
-        trust_remote_code=True,
-        use_auth_token=TOKEN,
-    )
-
-    model = torch.compile(
-        AutoModelForCausalLM.from_pretrained(
-            "teknium/Replit-v1-CodeInstruct-3B",
-            torch_dtype=torch.bfloat16,
-            trust_remote_code=True,
-            use_auth_token=TOKEN,
-            init_device="cuda",
-        ).eval()
-    )
+    # os.makedirs("results/replit_glaive", exist_ok=True)
 
     run_eval(
         args, model, tokenizer, num_samples_per_task, out_path, generate_batch_completion

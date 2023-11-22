@@ -1,0 +1,13 @@
+Trying with Gamma: 0.8; Delta: 10, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_80_10
+Generating code with watermark...
+Using watermark from extended_watermark_processor
+Vocabulary size: 32768
+torch.Size([10, 294])
+torch.Size([10, 128])
+torch.Size([10, 339])
+torch.Size([10, 128])
+torch.Size([10, 279])
+torch.Size([10, 128])
+torch.Size([10, 320])
+torch.Size([10, 128])

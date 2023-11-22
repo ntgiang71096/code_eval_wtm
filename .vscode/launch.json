@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["--use_watermark", "True", "--dynamic_seed", "markov_1", "--bl_proportion", "0.5", "--bl_logit_bias", "5.0", "--bl_type", "soft", "--store_spike_ents", "True", "--num_beams", "1", "--use_sampling", "True", "--sampling_temp", "0.7", "--out_path", "results/replit_glaive_watermark_config_9"],
+            "justMyCode": true
+        }
+    ]
+}

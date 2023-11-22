@@ -1,0 +1,14 @@
+Trying with Gamma: 0.6; Delta: 10, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_60_10
+Watermark result already exist.
+Calculating accuracy...
+Accuracy: 0.6765389082462253
+False Positive Rate: 0.0
+Incorrect detection. Increasing delta.
+----------------------------------------------------------------
+Trying with Gamma: 0.6; Delta: 15, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_60_15
+Generating code with watermark...
+Using watermark from extended_watermark_processor
+Vocabulary size: 32768
+Calculating accuracy...

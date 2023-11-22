@@ -1,0 +1,8 @@
+Running with specific gamma 0.2 and delta: 5.0
+Trying with Gamma: 0.2; Delta: 5.0, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_20_5
+Num_samples: None
+Generating code with watermark...
+Using watermark from extended_watermark_processor
+Vocabulary size: 32768
+Number of task to finish: None

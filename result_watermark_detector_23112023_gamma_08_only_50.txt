@@ -1,0 +1,536 @@
+Trying with Gamma: 0.8; Delta: 10, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_80_10
+Generating code with watermark...
+Using watermark from extended_watermark_processor
+Vocabulary size: 32768
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    def close_elements(x, y):
+        return threshold <= max(abs(x - y))
+
+    for ix, x in enumerate(numbers):
+        for i in range(ix + 1, len(numbers)):
+            if close_elements(x, numbers[i]):
+                return True
+
+    return False# coding: utf-8
+# Copyright
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    def closest_pair(p, r) -> Tuple[bool, float]:
+        dist1: float = abs(p - r)
+        dist2: float = abs(r - p)
+        if dist1 < dist2:
+            return True, dist2
+        else:
+            return True, dist2
+
+    return
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+	for idx, elem1 in enumerate(numbers):
+        for jdx, elem2 in enumerate(numbers):
+             if idx != jdx  and elem1 != elem2 and  abs (elem1 - elem2) < threshold  :
+                return True
+	return False
+#
+def distance(numbers , threshold):
+    
+    return has
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    def close_enough(p, r) -> bool:
+        return threshold <= max(abs(p - r))
+
+    for i, p in numbers[:-1]:
+        for j in numbers[i + 2:]:
+            if close_enough(p, j):
+                return True
+    return False#!flask/bin/python
+----------------------------------------------------------------
+
+
+def has_close_elements(numbers: List[float], threshold: float):
+	
+	for idx, elem1 in enumerate(numbers):
+	    for jdx, elem2 in enumerate(numbers):
+	        if jdx != idx 
+	            and (elem1 < elem2 + (threshold * 2)  or elem1 > elem2 − (threshold * 2)):
+				return True
+	return False
+
+def close_elements(numbers, threshold):
+	
+	return [elem for 
+----------------------------------------------------------------
+
+def has_close_elements(numbers: List[float], threshold: float):
+	
+	for idx, elem1  in enumerate(numbers):
+		for idx2, elem2  in enumerate(numbers):
+			if elem1 != elem2 and idx < idx2) and elem1 < elem2 + 2*threshold:
+				return True
+	return False# coding: utf-8
+import os
+import json
+
+from flask import Flask, render_template
+from flaskext import Flask
+from flask
+----------------------------------------------------------------
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    close_elements = []
+    for elem1, elem2 in zip(numbers,numbers[1:]):
+        distance=abs(elem1 - elem2)
+        if(distance<threshold):
+           close_elements.extend([elem1,elem2]);
+    if(len(close_elements)>=1):
+        return True
+    return False
+    
+#
+def distance(elem1 , elem2 
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    
+    def close_enough(x, y):
+        return threshold <=  abs(x - y)
+
+
+    for i, x in enumerate(numbers):
+        for j in range(i + 1, len(numbers)):
+            if close_enough(x, numbers[j]) 
+            and close_enough(numbers[j],
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    
+    """ Check if given list of number closest to each other with threshold value."""
+    
+    for ind, elem1 in enumerate(numbers):
+        for ind2, elem2 in enumerate(numbers):
+            if ind != ind2:
+                dist = abs(elem1 - elem2)
+                if dist < threshold:
+                    return True
+
+    return
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+	
+	for idx, elem1 in enumerate(numbers):
+		for idx2, elem2 in enumerate(numbers):
+			if idx != idx2 and elem1 != elem2 and elem1 < elem2 + 0.5 * (elem2 - elem1 + elem2 + 0.5 * (elem1 - elem2 + elem2 + elem
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def separate_parentheses(parentheses: Tuple[int, int, str]) -> List[Tuple[int, int, str]]]:
+    
+    current_string = []
+    current_depth = 0
+
+    def add_to_string(s):
+        if s == :
+            current_depth += 1
+        elif s == :
+            current_depth -=1
+        else:
+            current_string += (current_depth, current_depth,
+----------------------------------------------------------------
+from typing import List
+from typing_extensions import Literal
+
+
+def separated_parentheses(string_value: str, bracket1_value: Literal[chr] = chr(32), bracket2_value: Literal[chr] = chr(32)) -> List[ str ]:
+    
+    def recursively_separate(current_string, current_depth, max_depth, result, opening, closing):
+        if current_depth < max_depth:
+            for c in string_value:
+
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def separate_parentheses(parentheses: Tuple[int, int, str]) -> List[Tuple[int, int, str]]]:
+    
+    def split_string(s):
+        return list(filter(lambda x: x != , split(, )))
+    result = []
+    current_string = []
+    current_depth = 0
+
+    for c in parentheses:
+        if c == :
+            current_depth += 1
+
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def separate_paren_groups(paren_string: str) -> List[Tuple[int, str]]]:
+	
+	def parse_bracket_group(bracket):
+        depth, result = 0, []
+        for c in bracket:
+            if c == :
+                depth += 1
+                result.append((depth, c))
+            else:
+                depth -= 1
+
+                if depth == 0:
+                    return result
+                result.append((depth, c
+----------------------------------------------------------------
+from typing import List
+from typing_extensions import Literal
+from lark import Lark, parse
+
+
+def parse_string(string):
+	
+	# This is a Lark-compiled parser
+	parser = Lark()
+	tree = parser(string)
+	results = []
+
+	# We will traverse all chunks and append them to results
+	def recursively_traverse(tree):
+        # If item is a string, append it to results
+        if isinstance(tree, str):
+            return
+
+
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def separate_paren_groups(paren_string: str) -> List[Tuple[int, str]]]:
+	
+	def parse_brace(string):
+		depth, result = 0, []
+        for c in string:
+			if c == :
+				depth += 1
+				result.append((depth, c));
+            elif c==:
+                depth -= 1
+				result.append((depth, c));
+            else :
+                result.append
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def seperate_parentheses(parentheses: Tuple[int, int], paren_string: str) -> List[Tuple[int, int, str]]]:
+	
+	def parse_parentheses(s):
+
+			def parse_inner_parentheses(s):
+
+				depth = 0
+				result = []
+				start = 0
+				end = 0
+
+				while end <len(s):
+
+					if s[end]=='('  and  depth<
+----------------------------------------------------------------
+from typing import List
+from typing_extensions import Literal
+
+
+def split_nested_parentheses(parentheses:  str) -> List[Tuple[int, str]]]:
+	
+	depth = 0
+	ret = []
+	start = 0
+	end = -1
+
+	for idx, char in parentheses:
+        if char == :
+            depth += 1
+        else:
+            depth -= 1
+
+        if depth < 0:
+                depth = 0
+
+        if depth == 0 and end < idx 
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def seperate_parentheses(parentheses: Tuple[int, int], paren_string: str) -> List[Tuple[int, int, str]]:
+    
+    def split_string(s): 
+
+        split_index = min(list(filter(lambda x: x > 0, [pos - i for i, pos in 
+                       range(s[::-1], s)]))) 
+
+        return [(s[split_index],
+----------------------------------------------------------------
+from typing import List
+from typing import Tuple
+
+
+def separate_parentheses(parentheses: Tuple[str, int], paren_string: str) -> List[Tuple[str, int]]:
+    
+    depth = parentheses[0]
+    res = []
+    start, end = 0, 
+
+    for c in paren_string:
+        if c == parentheses[0]:
+            depth += 1
+        else:
+            depth -= 1
+
+        if depth == 0:
+            new_string = paren_
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1
+	
+if __name__== '__main__':
+
+	number = 3.5
+	print(truncate_number(number))
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number % 1.0# coding: utf-8
+#
+# ------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2016 Microsoft Corporation
+#
+# Permissions are granted as stated by the MIT License under which this
+# project is licensed.
+#
+# The MIT License contains permissions regarding use of this software. See
+# The MIT License for more details.
+#
+#
+----------------------------------------------------------------
+
+def truncate_number(number: float) -> float:
+	
+	return number % 1.0#!/usr/bin->
+# coding=utf-8
+#
+# Copyright 2015-2016 Televiziraj Lab, Inc
+#
+# Licensed under The Apache Software Language 
+# License, Version 2.0 (the "License"); you may not use this 
+# file except in compliance with the License. 
+# You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law oder of 
+
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number % 1.0# -*- coding: utf-8-*-
+# Copyright 2017, Creative Commonsense (http://creativecommonssense.com)
+#
+# This file is part of Inferstone.
+#
+# Inferstone is free software: You can distribute it and/or modify
+# it under the terms of the MIT License; either expressed in the
+# license file included with this distribution, or 
+# otherwise under the terms of Creative Commonsense AttributionException 3.0
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License。
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1.0# coding: utf-8
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtained a copy of the License at
+#
+#     https://wwws.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable lawOr agreed to in writing, Software
+# distributed under the License is distributed onan "AS IS" BASIS
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1
+	
+if __name__== '__main__':
+
+	number = 3.5
+	print(truncate_number(number))
+	
+	# output: 0.5# coding=utf-8
+# Copyright 2021 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1
+	
+if __name__== '__main__':
+
+    print(truncate_number(3.5))
+    
+    print(truncate_number(-3.5))# -*- coding: utf-8 --
+# @Time    : 18-11-27 18:06
+# @Author  : zhangjiao
+# @Email    : tugrp@example.com
+# @File    : train_model_resnet50_imagenet2012_baseline_mAP.py
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1.0# -*- coding: utf-8-*-
+# Copyright 2016 - 2017 Arne Harren
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law oder agreed on in writing,
+# Software distributed under the
+----------------------------------------------------------------
+
+
+def truncate_number(number: float) -> float:
+	
+	return number%1# -*- coding: utf-8-*-
+# Copyright 2020 by Johannes Kolb, Felix Le# coding=utf-8
+# date: 2020-03-20
+# type: str
+# value: 2020-03-20
+
+def parse_date(date_string):
+    
+    return date_string# -*- coding: utf-8-*-
+#
+# Copyright 2010-2014 Greg Harrison
+#
+# Licensed under the Apache
+----------------------------------------------------------------

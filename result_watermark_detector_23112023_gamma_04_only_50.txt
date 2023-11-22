@@ -1,0 +1,16 @@
+Trying to find optimal gamma and delta
+Trying with Gamma: 0.4; Delta: 10, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_40_10
+Watermark result already exist.
+Calculating accuracy...
+500 500 50
+Accuracy: 0.9771428571428571
+False Positive Rate: 0.0
+Incorrect detection. Increasing delta.
+----------------------------------------------------------------
+Trying with Gamma: 0.4; Delta: 15, pass@10
+Saving result to folder: results/eval_new_watermark_pass_10_40_15
+Generating code with watermark...
+Using watermark from extended_watermark_processor
+Vocabulary size: 32768
+Number of task to finish: None
