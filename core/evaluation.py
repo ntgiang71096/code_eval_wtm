@@ -133,6 +133,8 @@ def run_eval(
     pbar = tqdm(total=len(problems))
 
     count = 0
+
+    # num_samples = 20
     print("Number of task to finish: {}".format(num_samples))
     for task_id in problems:  
         # giang testing for 10 sample first
