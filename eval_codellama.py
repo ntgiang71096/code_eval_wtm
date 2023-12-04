@@ -15,7 +15,7 @@ import torch
 import argparse
 from submitit_utils import str2bool
 from torch import cuda
-import deepspeed
+# import deepspeed
 
 
 
@@ -24,7 +24,7 @@ import deepspeed
 TOKEN = ""
 
 use_cuda = cuda.is_available()
-device = torch.device("cuda:2" if use_cuda else "cpu")
+device = torch.device("cuda:1" if use_cuda else "cpu")
 
 @torch.inference_mode()
 def generate_batch_completion(
@@ -32,7 +32,8 @@ def generate_batch_completion(
 ) -> list:
     
     arg_dict = {1: {"num_return_sequences" : 1, "top_p" : 0.95, "temperature" : 0.2},
-                10: {"num_return_sequences" : 10, "top_p" : 0.95, "temperature" : 0.8}}
+                10: {"num_return_sequences" : 10, "top_p" : 0.95, "temperature" : 0.8},
+                40: {"num_return_sequences" : 40, "top_p" : 0.95, "temperature" : 0.8}}
 
     prompt_input = prompt
     # print(prompt)
@@ -102,7 +103,7 @@ if __name__ == "__main__":
         LlamaForCausalLM.from_pretrained(
             "codellama/CodeLlama-7b-hf",
             torch_dtype=torch.bfloat16,
-            device_map="auto", load_in_8bit=True
+            device_map="auto", load_in_4bit=True
         )
     )
 
