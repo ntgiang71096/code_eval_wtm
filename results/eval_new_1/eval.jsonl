@@ -1,0 +1,9 @@
+{"task_id": "HumanEval/0", "completion": "from typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \n    def close_enough(a, b):\n        return "}
+{"task_id": "HumanEval/1", "completion": "from typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \n    result = []\n    current_string = []\n    current_depth ="}
+{"task_id": "HumanEval/2", "completion": "\n\ndef truncate_number(number: float) -> float:\n    \n    return number % 1.0# -*- coding: utf-8 -*-\n# Copyright (C) 2014-2018 Andrey Antukh "}
+{"task_id": "HumanEval/3", "completion": "from typing import List\n\n\ndef below_zero(operations: List[int]) -> bool:\n    \n    balance = 0\n\n    for op in operations:\n        balance += op\n        if balance <"}
+{"task_id": "HumanEval/4", "completion": "from typing import List\n\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    \n    mean = sum(numbers) / len(numbers)\n    return sum(abs(x"}
+{"task_id": "HumanEval/5", "completion": "from typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \n    if not numbers:\n        return []\n\n    result"}
+{"task_id": "HumanEval/6", "completion": "from typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \n    def parse_paren_group(s):\n        depth = 0\n"}
+{"task_id": "HumanEval/7", "completion": "from typing import List\n\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \n    return [x for x in strings if substring"}
+{"task_id": "HumanEval/8", "completion": "from typing import List, Tuple\n\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    \n    sum_value = 0\n    prod_value = 1\n\n   "}
