@@ -53,7 +53,7 @@ def run_eval(
     format_tabs: bool = False,
     num_samples = None
 ):
-    logit_processor_lst = [], 
+    logit_processor_lst = None
     gen_kwargs = {}
 
     if args.use_watermark == True:
@@ -65,7 +65,7 @@ def run_eval(
         print(f"Vocabulary size: {vocab_size}")
 
         bl_processor = WatermarkLogitsProcessor(vocab = list(tokenizer.get_vocab().values()),  gamma = args.gamma,
-        delta = args.delta)
+        delta = args.delta, seeding_scheme='simple_1')
 
         logit_processor_lst = LogitsProcessorList([bl_processor])
 
