@@ -103,7 +103,7 @@ if __name__ == "__main__":
     num_samples_per_task = args.pass_value
 
     run_eval(
-        args, model, None, num_samples_per_task, out_path, generate_batch_completion
+        args, model, model.llm.get_tokenizer, num_samples_per_task, out_path, generate_batch_completion
     )
 
 
