@@ -91,6 +91,12 @@ if __name__ == "__main__":
         required=False,
         default=None
     )
+
+    parser.add_argument(
+        "--gpu",
+        type=int,
+        default=0
+    )
     
     args = parser.parse_args()
 
@@ -100,7 +106,7 @@ if __name__ == "__main__":
     if args.cache_location is not None:
         print("Cache dir is set to: {}".format(args.cache_location))
         model = SantaCoder(
-                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, cache_location=args.cache_location
+                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, cache_location=args.cache_location, gpu=args.gpu
             )
     else:
         print("Default cache dir is used")
