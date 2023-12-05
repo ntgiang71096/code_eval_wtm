@@ -16,7 +16,7 @@ from transformers import (
     StoppingCriteria,
     StoppingCriteriaList,
 )
-from vllm import LLM, SamplingParams
+# from vllm import LLM, SamplingParams
 
 # from evalplus.gen.util.api_request import make_auto_request
 
@@ -73,7 +73,8 @@ class DecoderBase(ABC):
         min_new_tokens: int = 5,
         conversational: bool = False,
         max_conversational_new_tokens: int = 1024,
-        gpu = None
+        gpu = None,
+        cache_location = None
     ) -> None:
         print("Initializing a decoder model: {} ...".format(name))
         self.name = name
@@ -127,9 +128,21 @@ class VLlmDecoder(DecoderBase):
             assert self.temperature > 0, "Temperature must be greater than 0!"
         batch_size = min(self.batch_size, num_samples)
 
+        # vllm_outputs = self.llm.generate(
+        #     [prompt] * batch_size,
+        #     SamplingParams(
+        #         temperature=self.temperature,
+        #         max_tokens=self.max_new_tokens,
+        #         top_p=0.95 if do_sample else 1.0,
+        #         logits_processors=kwargs['logit_processor_lst'] if has_logit_processor else None
+        #     ),
+        #     use_tqdm=False,
+        # )
+        print(kwargs['logit_processor_lst'])
         vllm_outputs = self.llm.generate(
-            [prompt] * batch_size,
+            [prompt],
             SamplingParams(
+                n = batch_size,
                 temperature=self.temperature,
                 max_tokens=self.max_new_tokens,
                 top_p=0.95 if do_sample else 1.0,
@@ -184,12 +197,20 @@ Create a Python script for this problem:
 class HFTorchDecoder(DecoderBase):
     def __init__(self, name: str, **kwargs):
         super().__init__(name=name, **kwargs)
+
+        #giang: customized input
         if "gpu" in kwargs and kwargs['gpu'] is not None:
             print(kwargs)
             print("Load model to gpu-{}".format(kwargs['gpu']))
             self.device = torch.device("cuda:{}".format(kwargs['gpu']))
         else:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        if "cache_location" in kwargs:
+            cache_location = kwargs["cache_location"]
+        else:
+            cache_location = None
+
         kwargs = {
             "trust_remote_code": name
             in {
@@ -231,20 +252,27 @@ class HFTorchDecoder(DecoderBase):
 
         print(f"{kwargs = }")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(name)
-        # self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
+        if cache_location is not None:
+            print("Cache location is set to: {}".format(cache_location))
+            self.tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=cache_location)
+            self.model = AutoModelForCausalLM.from_pretrained(name, cache_dir=cache_location, **kwargs)
+        else:
+            print("Use default cache location")
+
+            self.tokenizer = AutoTokenizer.from_pretrained(name)
+            self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
 
         #giang: for the use of load 8bit
-        self.model = AutoModelForCausalLM.from_pretrained(name, device_map="auto", load_in_8bit=True, **kwargs)
+        # self.model = AutoModelForCausalLM.from_pretrained(name, device_map="auto", load_in_8bit=True, **kwargs)
         if name in {"StabilityAI/stablelm-base-alpha-7b"}:
             print("Switching to float16 ...")
             self.model = self.model.half()
             self.skip_special_tokens = True
         
-        # self.model = self.model.to(self.device)
+        self.model = self.model.to(self.device)
         
         #giang: for the use of load 8bit
-        self.device = self.model.device
+        # self.device = self.model.device
 
     @torch.inference_mode()
     def codegen(
