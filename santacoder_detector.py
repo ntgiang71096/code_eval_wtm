@@ -1,3 +1,7 @@
+import os
+os.environ['HF_HOME'] = '/work/huggingface_cache'
+os.environ['HF_DATASETS_CACHE'] = '/work/huggingface_cache/datasets'
+os.environ['TRANSFORMERS_CACHE'] = '/work/huggingface_cache/models'
 
 from sklearn.metrics import accuracy_score, recall_score
 from core import run_eval, replit_glaive_prompt
@@ -25,7 +29,6 @@ from submitit_utils import str2bool
 import inspect
 from human_eval.data import write_jsonl, read_problems
 
-import os
 import json
 
 TOKEN = ''
@@ -174,7 +177,7 @@ def init_tokenizer_and_model(gpu, cache_location):
         )
 
     print("Finish loading model")
-    
+
     return model, model.tokenizer
 
 
