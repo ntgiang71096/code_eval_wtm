@@ -70,13 +70,23 @@ def generate_batch_completion(
         [ids[input_ids_cutoff:] for ids in generated_ids],
         skip_special_tokens=True,
     )
+    filtered_batch_completions = []
 
-    batch_completions = [filter_code(fix_indents(completion)) for completion in batch_completions]
+    # must do this so the watermark detector doesn't get error because of empty code
+    # 5 tokens do not make completion meaningful after all
+    for completion in batch_completions:
+        filtered_code = filter_code(fix_indents(completion))
+        if len(filtered_code.strip()) >= 5:
+             filtered_batch_completions.append(filtered_code)
+        else:
+             filtered_batch_completions.append(completion)
+
+    # batch_completions = [filter_code(fix_indents(completion)) for completion in batch_completions]
 
     # batch_completions = [prompt + batch for batch in batch_completions]
     result = []
-    for batch in batch_completions:
-         result.append(fix_indents(prompt) + " " + batch)
+    for completion in filtered_batch_completions:
+         result.append(fix_indents(prompt) + " " + completion)
 
     return result
     # return [filter_code(fix_indents(completion)) for completion in batch_completions]
