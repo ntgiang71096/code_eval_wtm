@@ -86,6 +86,13 @@ def generate_watermark_code(gamma, delta, wtm_path, pass_value, model, tokenizer
         default=num_samples
     )
 
+    parser.add_argument(
+        "--cache_location",
+        type=str,
+        required=False,
+        default=None
+    )
+
 
     args = parser.parse_args()    
     os.makedirs(wtm_path, exist_ok=True)
