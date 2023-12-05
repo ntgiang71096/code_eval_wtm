@@ -160,8 +160,34 @@ def calculate_pass_k(wtm_path):
     # os.system("python3 process_eval.py --path {} --out_path {}/processed.jsonl --add_prompt".format(wtm_path, wtm_path))
     os.system("evaluate_functional_correctness {}/eval.jsonl".format(wtm_path))
 
-def init_tokenizer_and_model(gpu):
-    tokenizer = AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf")
+def init_tokenizer_and_model(gpu, cache_location):
+
+    if cache_location is not None:
+        print("Cache dir is set to: {}".format(cache_location))
+        tokenizer = AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf", cache_dir=cache_location)
+
+        model = torch.compile(
+            LlamaForCausalLM.from_pretrained(
+                "codellama/CodeLlama-7b-hf",
+                torch_dtype=torch.bfloat16,
+                device_map="auto", 
+                load_in_4bit=True,
+                cache_dir=cache_location
+            )
+        )
+    else:
+        print("Default cache dir is used")
+        tokenizer = AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf")
+
+        model = torch.compile(
+            LlamaForCausalLM.from_pretrained(
+                "codellama/CodeLlama-7b-hf",
+                torch_dtype=torch.bfloat16,
+                device_map="auto", 
+                load_in_4bit=True
+            )
+        )
+
     if not tokenizer.eos_token:
             if tokenizer.bos_token:
                 tokenizer.eos_token = tokenizer.bos_token
@@ -169,15 +195,6 @@ def init_tokenizer_and_model(gpu):
             else:
                 raise ValueError("No eos_token or bos_token found")
     tokenizer.pad_token = tokenizer.eos_token
-
-
-    model = torch.compile(
-        LlamaForCausalLM.from_pretrained(
-            "codellama/CodeLlama-7b-hf",
-            torch_dtype=torch.bfloat16,
-            device_map="auto", load_in_4bit=True
-        )
-    )
 
     model.eval()
 
@@ -331,13 +348,20 @@ if __name__ == "__main__":
         default=None
     )
 
+    parser.add_argument(
+        "--cache_location",
+        type=str,
+        required=False,
+        default=None
+    )
+
     
 
     args = parser.parse_args()
     
     gamma = args.gamma
     delta = args.delta
-    model, tokenizer = init_tokenizer_and_model(args.gpu)
+    model, tokenizer = init_tokenizer_and_model(args.gpu, args.cache_location)
 
     
     if delta == -1:

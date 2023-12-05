@@ -48,13 +48,6 @@ def generate_batch_completion(
 
 
 if __name__ == "__main__":
-    batch_size = 10
-    temperature = 0.8
-
-    model = SantaCoder(
-            batch_size=batch_size, name="bigcode/santacoder", temperature=temperature
-        )
-
 
     parser = argparse.ArgumentParser(description="Run watermarked huggingface LM generation pipeline")
 
@@ -91,8 +84,29 @@ if __name__ == "__main__":
         default=False,
         help=("pass_value either 1 or 10"),
     )
+
+    parser.add_argument(
+        "--cache_location",
+        type=str,
+        required=False,
+        default=None
+    )
     
     args = parser.parse_args()
+
+    batch_size = 10
+    temperature = 0.8
+
+    if args.cache_location is not None:
+        print("Cache dir is set to: {}".format(args.cache_location))
+        model = SantaCoder(
+                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, cache_location=args.cache_location
+            )
+    else:
+        print("Default cache dir is used")
+        model = SantaCoder(
+                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature
+            )
 
     result_path = args.out_path
     

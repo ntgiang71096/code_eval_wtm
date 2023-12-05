@@ -85,6 +85,13 @@ def generate_watermark_code(gamma, delta, wtm_path, pass_value, model, tokenizer
         default=num_samples
     )
 
+    parser.add_argument(
+        "--cache_location",
+        type=str,
+        required=False,
+        default=None
+    )
+
 
     args = parser.parse_args()    
     os.makedirs(wtm_path, exist_ok=True)
@@ -157,12 +164,13 @@ def calculate_pass_k(wtm_path):
     # os.system("python3 process_eval.py --path {} --out_path {}/processed.jsonl --add_prompt".format(wtm_path, wtm_path))
     os.system("evaluate_functional_correctness {}/eval.jsonl".format(wtm_path))
 
-def init_tokenizer_and_model(gpu):
+def init_tokenizer_and_model(gpu, cache_location):
     batch_size = 10
     temperature = 0.8
 
+
     model = SantaCoder(
-            batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, gpu=gpu
+            batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, gpu=gpu, cache_location=cache_location
         )
 
     return model, model.tokenizer
@@ -315,13 +323,20 @@ if __name__ == "__main__":
         default=None
     )
 
-    
+    parser.add_argument(
+        "--cache_location",
+        type=str,
+        required=False,
+        default=None
+    )
+
 
     args = parser.parse_args()
     
+    print(args.cache_location)
     gamma = args.gamma
     delta = args.delta
-    model, tokenizer = init_tokenizer_and_model(args.gpu)
+    model, tokenizer = init_tokenizer_and_model(args.gpu, args.cache_location)
 
     
     if delta == -1:
