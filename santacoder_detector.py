@@ -173,6 +173,8 @@ def init_tokenizer_and_model(gpu, cache_location):
             batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, gpu=gpu, cache_location=cache_location
         )
 
+    print("Finish loading model")
+    
     return model, model.tokenizer
 
 
