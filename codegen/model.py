@@ -16,6 +16,7 @@ from transformers import (
     StoppingCriteria,
     StoppingCriteriaList,
 )
+
 # from vllm import LLM, SamplingParams
 
 # from evalplus.gen.util.api_request import make_auto_request
@@ -70,11 +71,12 @@ class DecoderBase(ABC):
         batch_size: int = 1,
         temperature: float = 0.8,
         max_new_tokens: int = 512,
-        min_new_tokens: int = 5,
+        min_new_tokens: int = 10,       # giang: previous value for santadecoder: 10
         conversational: bool = False,
         max_conversational_new_tokens: int = 1024,
         gpu = None,
-        cache_location = None
+        cache_location = None,
+        load_in_8bit = False
     ) -> None:
         print("Initializing a decoder model: {} ...".format(name))
         self.name = name
@@ -87,6 +89,7 @@ class DecoderBase(ABC):
         )
         self.min_new_tokens = min_new_tokens
         self.conversational = conversational
+        self.load_in_8bit = load_in_8bit
 
     @abstractmethod
     def codegen(
@@ -252,32 +255,40 @@ class HFTorchDecoder(DecoderBase):
 
         print(f"{kwargs = }")
 
-        if cache_location is not None:
-            print("Cache location is set to: {}".format(cache_location))
-            self.tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=cache_location)
-            self.model = AutoModelForCausalLM.from_pretrained(name, cache_dir=cache_location, **kwargs)
-        else:
-            print("Use default cache location")
+        # if cache_location is not None:
+        #     print("Cache location is set to: {}".format(cache_location))
+        #     self.tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=cache_location)
+        #     self.model = AutoModelForCausalLM.from_pretrained(name, cache_dir=cache_location, **kwargs)
+        # else:
+        #     print("Use default cache location")
 
-            self.tokenizer = AutoTokenizer.from_pretrained(name)
-            self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
+        #     self.tokenizer = AutoTokenizer.from_pretrained(name)
+        #     self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
 
         #giang: for the use of load 8bit
-        # self.model = AutoModelForCausalLM.from_pretrained(name, device_map="auto", load_in_8bit=True, **kwargs)
+
+        self.tokenizer = AutoTokenizer.from_pretrained(name)
+
+        print("load_in_8bit: {}".format(self.load_in_8bit))
+        
+        if self.load_in_8bit:
+            self.model = AutoModelForCausalLM.from_pretrained(name, device_map="auto", load_in_8bit=True, **kwargs)
+            self.device = self.model.device
+        else:
+            self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
+            self.model = self.model.to(self.device)        
+
         if name in {"StabilityAI/stablelm-base-alpha-7b"}:
             print("Switching to float16 ...")
             self.model = self.model.half()
             self.skip_special_tokens = True
-        
-        self.model = self.model.to(self.device)
-        
-        #giang: for the use of load 8bit
-        # self.device = self.model.device
+
 
     @torch.inference_mode()
     def codegen(
-        self, prompt: str, do_sample: bool = True, num_samples: int = 200
+        self, prompt: str, do_sample: bool = True, num_samples: int = 200, **kwargs
     ) -> List[str]:
+        has_logit_processor ='logit_processor_lst' in kwargs and kwargs['logit_processor_lst'] is not None
         if self.temperature == 0:
             assert not do_sample
             assert num_samples == 1
@@ -294,20 +305,26 @@ class HFTorchDecoder(DecoderBase):
                 )
             ]
         )
-        kwargs = {}
+        if not has_logit_processor:
+            kwargs = {}
+        else:
+            kwargs =  {"logits_processor": kwargs["logit_processor_lst"]}
+
         if do_sample:
             kwargs["top_p"] = 0.95
             kwargs["temperature"] = self.temperature
-
+            
         raw_outputs = self.model.generate(
             input_tokens,
             max_new_tokens=self.max_new_tokens,
+            min_new_tokens=self.min_new_tokens,
             stopping_criteria=scores,
             do_sample=do_sample,
             output_scores=True,
             return_dict_in_generate=True,
             num_return_sequences=min(self.batch_size, num_samples),
             pad_token_id=self.tokenizer.eos_token_id,
+            # logits_processor=kwargs['logit_processor_lst'] if has_logit_processor else None,
             **kwargs,
         )  # remove warning
         gen_seqs = raw_outputs.sequences[:, len(input_tokens[0]) :]
@@ -433,8 +450,10 @@ class IncoderDecoder(HFTorchDecoder):
         self.eos = self.eos + self.extra_eos
 
     def codegen(
-        self, prompt: str, do_sample: bool = True, num_samples: int = 200
+        self, prompt: str, do_sample: bool = True, num_samples: int = 200, **kwargs
     ) -> List[str]:
+        has_logit_processor ='logit_processor_lst' in kwargs and kwargs['logit_processor_lst'] is not None
+        # print("Has logits processor: {}".format(has_logit_processor))
         input = prompt + self.infill_ph + self.extra_end
         input_tokens = self.tokenizer.encode(input, return_tensors="pt").to(self.device)
         scores = StoppingCriteriaList(
@@ -449,6 +468,7 @@ class IncoderDecoder(HFTorchDecoder):
         raw_outputs = self.model.generate(
             input_tokens,
             max_new_tokens=self.max_new_tokens,
+            min_new_tokens=self.min_new_tokens,
             stopping_criteria=scores,
             do_sample=do_sample,
             top_p=0.95,
@@ -457,6 +477,7 @@ class IncoderDecoder(HFTorchDecoder):
             num_return_sequences=min(self.batch_size, num_samples),
             output_scores=True,
             return_dict_in_generate=True,
+            logits_processor=kwargs['logit_processor_lst'] if has_logit_processor else None
         )
         gen_seqs = raw_outputs.sequences[:, len(input_tokens[0]) :]
         gen_strs = self.tokenizer.batch_decode(
@@ -469,7 +490,11 @@ class IncoderDecoder(HFTorchDecoder):
             for eos in self.eos:
                 if eos in output:
                     min_index = min(min_index, output.index(eos))
-            outputs.append(output[:min_index])
+            # giang: ensure output reach a certain length for watermark detection
+            if len(output[:min_index].strip()) > 15:
+                outputs.append(output[:min_index])
+            else:
+                outputs.append(output)
         return outputs
 
 

@@ -33,8 +33,8 @@ class WatermarkBase:
     def __init__(
         self,
         vocab: list[int] = None,
-        gamma: float = 0.99,
-        delta: float = 10,
+        gamma: float = 0.25,
+        delta: float = 2.0,
         seeding_scheme: str = "selfhash",  # simple default, find more schemes in alternative_prf_schemes.py
         select_green_tokens: bool = True,  # should always be the default if not running in legacy mode
     ):
@@ -50,6 +50,7 @@ class WatermarkBase:
         self.gamma = gamma
         self.delta = delta
         self.rng = None
+        
         self._initialize_seeding_scheme(seeding_scheme)
         # Legacy behavior:
         self.select_green_tokens = select_green_tokens
@@ -57,7 +58,6 @@ class WatermarkBase:
     def _initialize_seeding_scheme(self, seeding_scheme: str) -> None:
         """Initialize all internal settings of the seeding strategy from a colloquial, "public" name for the scheme."""
         self.prf_type, self.context_width, self.self_salt, self.hash_key = seeding_scheme_lookup(seeding_scheme)
-        # print("salt in _initialize_seeding_scheme: {}".format(self.self_salt))
 
     def _seed_rng(self, input_ids: torch.LongTensor) -> None:
         """Seed RNG from local context. Not batched, because the generators we use (like cuda.random) are not batched."""
@@ -108,7 +108,6 @@ class WatermarkLogitsProcessor(WatermarkBase, LogitsProcessor):
             self.expected_gl_coef = 1.0
 
     def _get_spike_entropies(self):
-        # print("Calling _get_spike_entropies")
         spike_ents = [[] for _ in range(len(self.spike_entropies))]
         for b_idx, ent_tensor_list in enumerate(self.spike_entropies):
             for ent_tensor in ent_tensor_list:
@@ -116,13 +115,11 @@ class WatermarkLogitsProcessor(WatermarkBase, LogitsProcessor):
         return spike_ents
 
     def _get_and_clear_stored_spike_ents(self):
-        # print("Calling _get_and_clear_stored_spike_ents")
         spike_ents = self._get_spike_entropies()
         self.spike_entropies = None
         return spike_ents
 
     def _compute_spike_entropy(self, scores):
-        # print("Calling _compute_spike_entropy")
         # precomputed z value in init
         probs = scores.softmax(dim=-1)
         denoms = 1 + (self.z_value * probs)
@@ -131,7 +128,6 @@ class WatermarkLogitsProcessor(WatermarkBase, LogitsProcessor):
         return sum_renormed_probs
 
     def _calc_greenlist_mask(self, scores: torch.FloatTensor, greenlist_token_ids) -> torch.BoolTensor:
-        # print("Calling _calc_greenlist_mask")
         # Cannot lose loop, greenlists might have different lengths
         green_tokens_mask = torch.zeros_like(scores, dtype=torch.bool)
         for b_idx, greenlist in enumerate(greenlist_token_ids):
@@ -150,7 +146,6 @@ class WatermarkLogitsProcessor(WatermarkBase, LogitsProcessor):
         To work efficiently, this function can switch between a number of rules for handling the distribution tail.
         These are not exposed by default.
         """
-        # print("Calling _score_rejection_sampling")
         sorted_scores, greedy_predictions = scores.sort(dim=-1, descending=True)
 
         final_greenlist = []
@@ -173,11 +168,12 @@ class WatermarkLogitsProcessor(WatermarkBase, LogitsProcessor):
                 pass  # do not break early
         return torch.as_tensor(final_greenlist, device=input_ids.device)
 
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-        # print("Calling __call__")
+    def __call__(self, input_ids, scores):
         """Call with previous context as input_ids, and scores for next token."""
-
+        # print("__call__")
         # this is lazy to allow us to co-locate on the watermarked model's device
+        # print("input_ids: {}".format(input_ids))
+        # print("scores: {}".format(scores))
         self.rng = torch.Generator(device=input_ids.device) if self.rng is None else self.rng
 
         # NOTE, it would be nice to get rid of this batch loop, but currently,
@@ -254,7 +250,7 @@ class WatermarkDetector(WatermarkBase):
         return_green_token_mask: bool = False,
         return_all_window_scores: bool = False,
         return_z_score: bool = True,
-        return_z_at_T: bool = False,    # giang: original: True
+        return_z_at_T: bool = False,
         return_p_value: bool = True,
     ):
         # HF-style output dictionary
@@ -312,13 +308,13 @@ class WatermarkDetector(WatermarkBase):
     def _score_ngrams_in_passage(self, input_ids: torch.Tensor):
         """Core function to gather all ngrams in the input and compute their watermark."""
         if len(input_ids) - self.context_width < 1:
+            print(len(input_ids))
             raise ValueError(
                 f"Must have at least {1} token to score after "
                 f"the first min_prefix_len={self.context_width} tokens required by the seeding scheme."
             )
 
         # Compute scores for all ngrams contexts in the passage:
-        # print("salt: in _score_ngrams_in_passage {}".format(self.self_salt))
         token_ngram_generator = ngrams(input_ids.cpu().tolist(), self.context_width + 1 - self.self_salt)
         frequencies_table = collections.Counter(token_ngram_generator)
         ngram_to_watermark_lookup = {}
@@ -366,7 +362,7 @@ class WatermarkDetector(WatermarkBase):
         return_green_fraction: bool = True,
         return_green_token_mask: bool = False,
         return_z_score: bool = True,
-        return_z_at_T: bool = False,    # giang: original value: True
+        return_z_at_T: bool = False,
         return_p_value: bool = True,
     ):
         ngram_to_watermark_lookup, frequencies_table = self._score_ngrams_in_passage(input_ids)
@@ -382,7 +378,6 @@ class WatermarkDetector(WatermarkBase):
             num_tokens_scored = len(frequencies_table.keys())
             green_token_count = sum(ngram_to_watermark_lookup.values())
         else:
-            # print("salt: {}".format(self.self_salt))
             num_tokens_scored = sum(frequencies_table.values())
             assert num_tokens_scored == len(input_ids) - self.context_width + self.self_salt
             green_token_count = sum(freq * outcome for freq, outcome in zip(frequencies_table.values(), ngram_to_watermark_lookup.values()))
@@ -497,7 +492,7 @@ class WatermarkDetector(WatermarkBase):
         return_green_fraction: bool = True,
         return_green_token_mask: bool = False,
         return_z_score: bool = True,
-        return_z_at_T: bool = True,
+        return_z_at_T: bool = False,
         return_p_value: bool = True,
         window_size: str = None,
         window_stride: int = 1,
@@ -549,6 +544,7 @@ class WatermarkDetector(WatermarkBase):
         convert_to_float: bool = False,
         **kwargs,
     ) -> dict:
+        # print("text: {}".format(text))
         """Scores a given string of text and returns a dictionary of results."""
 
         assert (text is not None) ^ (tokenized_text is not None), "Must pass either the raw or tokenized string"
@@ -588,6 +584,8 @@ class WatermarkDetector(WatermarkBase):
             )
             output_dict.update(score_dict)
         else:
+            # print(text)
+            # print(tokenized_text)
             score_dict = self._score_sequence(tokenized_text, **kwargs)
         if return_scores:
             output_dict.update(score_dict)

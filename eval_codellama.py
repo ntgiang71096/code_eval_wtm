@@ -76,7 +76,7 @@ def generate_batch_completion(
     # 5 tokens do not make completion meaningful after all
     for completion in batch_completions:
         filtered_code = filter_code(fix_indents(completion))
-        if len(filtered_code.strip()) >= 5:
+        if len(filtered_code.strip()) >= 10:
              filtered_batch_completions.append(filtered_code)
         else:
              filtered_batch_completions.append(completion)

@@ -6,6 +6,9 @@ import operator
 from itertools import product
 import argparse
 
+from human_eval.data import write_jsonl, read_problems
+import json
+
 ###############################################################################
 # A grid search convenience class
 ###############################################################################
@@ -77,3 +80,34 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def load_human_eval_groundtruth():
+    problems = read_problems()
+
+    result = [problems[task_id]['canonical_solution'] for task_id in problems]
+
+    return result
+
+
+def load_dataset_groundtruth(dataset_name):
+    if dataset_name == 'human_eval':
+        return load_human_eval_groundtruth()
+    elif dataset_name == 'mbpp':
+        raise Exception("Not implemented for mbpp yet")
+    else:
+        raise Exception("Unknown dataset name")
+    
+
+def load_generated_code(file_path):
+    problems = read_problems()
+
+    prompt = {task_id:problems[task_id]['prompt'] for task_id in problems}
+
+    result = []
+    with open(file_path + '/eval.jsonl', 'r') as file:
+            for i, line in enumerate(file):
+                json_data = json.loads(line)
+                result.append(json_data['completion'][len(prompt[json_data['task_id']]):])
+                
+    return result

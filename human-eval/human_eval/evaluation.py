@@ -33,8 +33,10 @@ def estimate_pass_at_k(
         assert len(num_samples) == len(num_correct)
         num_samples_it = iter(num_samples)
 
+    #giang 
+    result = [estimator(int(n), int(c), k) for n, c in zip(num_samples_it, num_correct)]
     return np.array(
-        [estimator(int(n), int(c), k) for n, c in zip(num_samples_it, num_correct)]
+        result
     )
 
 
@@ -62,7 +64,7 @@ def evaluate_functional_correctness(
         print("Reading samples...")
         for sample in tqdm.tqdm(stream_jsonl(sample_file)):
             task_id = sample["task_id"]
-            completion = sample["completion"]
+            completion = sample["completion"] if "completion" in sample else sample["solution"]
             args = (problems[task_id], completion, timeout, completion_id[task_id])
             future = executor.submit(check_correctness, *args)
             futures.append(future)

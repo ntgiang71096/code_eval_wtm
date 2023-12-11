@@ -2,7 +2,6 @@ from transformers import (
     PreTrainedModel,
     PreTrainedTokenizer,
 )
-
 from core import run_eval, replit_glaive_prompt, filter_code, fix_indents
 import os
 import torch
@@ -10,7 +9,7 @@ import argparse
 from submitit_utils import str2bool
 from torch import cuda
 
-from codegen.model import make_model, VLlmDecoder, SantaCoder
+from codegen.model import make_model, VLlmDecoder, SantaCoder, IncoderDecoder, HFTorchDecoder
 from codegen.generate import construct_contract_prompt
 
 from core import run_eval, replit_glaive_prompt, filter_code, fix_indents
@@ -21,13 +20,12 @@ from core import run_eval, replit_glaive_prompt, filter_code, fix_indents
 TOKEN = ""
 
 use_cuda = cuda.is_available()
-device = torch.device("cuda:2" if use_cuda else "cpu")
+# device = torch.device("cuda:2" if use_cuda else "cpu")
 
 @torch.inference_mode()
 def generate_batch_completion(
-    model, tokenizer, prompt: str, batch_size: int, logit_processor_lst=None, use_watermark=False
+    model, tokenizer, prompt: str, batch_size: int, logit_processor_lst, use_watermark
 ) -> list:
-    
     outputs = model.codegen(
                     construct_contract_prompt(
                         prompt=prompt, contract_type='none', contract='none'
@@ -37,18 +35,45 @@ def generate_batch_completion(
                     logit_processor_lst=logit_processor_lst
                 )
     
-    outputs = [filter_code(fix_indents(completion)) for completion in outputs]
-    # return outputs
+
+    filtered_outputs = []
+
+    for completion in outputs:
+        filtered_ = filter_code(fix_indents(completion))
+        if len(filtered_.strip()) >= 10:
+             filtered_outputs.append(filtered_)
+        else:
+             filtered_outputs.append(completion)
 
     result = []
-    for batch in outputs:
-         result.append(fix_indents(prompt) + batch)
+
+    for completion in filtered_outputs:
+        result.append(fix_indents(prompt) + completion)
 
     return result
+
+    # outputs = [filter_code(fix_indents(completion)) for completion in outputs]
+    # # return outputs
+
+    # result = []
+    # for batch in outputs:
+    #      result.append(fix_indents(prompt) + batch)
+
+    # return result
     
 
 
 if __name__ == "__main__":
+    # model_name = "codellama/CodeLlama-7b-hf"
+    batch_size = 10
+    temperature = 0.8
+
+    model = HFTorchDecoder(
+            batch_size=batch_size,
+            name="NinedayWang/PolyCoder-2.7B",
+            temperature=temperature,
+        )
+
 
     parser = argparse.ArgumentParser(description="Run watermarked huggingface LM generation pipeline")
 
@@ -85,42 +110,8 @@ if __name__ == "__main__":
         default=False,
         help=("pass_value either 1 or 10"),
     )
-
-    parser.add_argument(
-        "--cache_location",
-        type=str,
-        required=False,
-        default=None
-    )
-
-    parser.add_argument(
-        "--gpu",
-        type=int,
-        default=0
-    )
-
-    parser.add_argument(
-        "--local_rank",
-        type=int,
-        default=0
-    )
-
     
     args = parser.parse_args()
-
-    batch_size = 10
-    temperature = 0.8
-
-    if args.cache_location is not None:
-        print("Cache dir is set to: {}".format(args.cache_location))
-        model = SantaCoder(
-                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, cache_location=args.cache_location, gpu=args.gpu
-            )
-    else:
-        print("Default cache dir is used")
-        model = SantaCoder(
-                batch_size=batch_size, name="bigcode/santacoder", temperature=temperature, gpu=args.gpu
-            )
 
     result_path = args.out_path
     
