@@ -1,3 +1,20 @@
+# Run watermarking using detector_main.py
+Example
+
+Command: ```python detector_main.py --model_name bigcode/santacoder --gamma 0.5 --delta 10 --gpu 3 --pass_value 10 --no_wtm_path results/evalplus_santacoder_no_watermark_3 --dataset_name human_eval```
+
+The result will be stored at: result_bigcode_santacoder_watermark_pass_10_50_10
+
+Options for argument **model_name** (currently): **bigcode/santacoder**, **NinedayWang/PolyCoder-2.7B**, **codellama/CodeLlama-7b-hf**
+
+Note for value of **no_wtm_path** for specific LLM:
+
+For santacoder: **results/evalplus_santacoder_no_watermark_3**
+
+For polycoder: **results/evalplus_polycoder_no_watermark**
+
+For codellama-7B: **results/eval_codellama_no_watermark_4122023**
+
 # code-eval
 
 ## What
